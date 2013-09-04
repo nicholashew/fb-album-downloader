@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Custom FB API [ Blade Master Kenshiin Wu ]</title>
+
+    <meta http-equiv="Content-type" content="application/x-www-form-urlencoded; charset=UTF-8" />
+
+    <link href="js/jquery-ui-1.10.3/themes/base/jquery.ui.all.css" rel="stylesheet" />
+    <link href="js/jquery.fancyBox/jquery.fancybox.css" rel="stylesheet" />
+    <link href="css/blademaster.kenshiin.wu.css" rel="stylesheet" />
+
+    <script src="js/jquery.framework/jquery-1.9.1.min.js" type="text/javascript"></script>
+    <script src="js/jquery-ui-1.10.3/ui/minified/jquery-ui.min.js" type="text/javascript"></script>
+    <script src="js/jquery.fancyBox/jquery.fancybox.js" type="text/javascript"></script>
+    <script src="js/Stuk-jszip-1b5ef3c/jszip.js"></script>
+    <script src="js/jquery.custom.fb.api.blademaster.kenshiin.wu.js" type="text/javascript"></script>
+    
+</head>
+<body>
+   
+    <div class="container">
+        <div id="kenshiin-root"></div>
+    </div>
+
+    <script type="text/javascript">
+
+        function confirmDialog(dialogText, okFunc, cancelFunc, dialogTitle) {
+            $('<div style="padding: 10px; max-width: 500px; word-wrap: break-word;">' + dialogText + '</div>').dialog({
+                draggable: false,
+                modal: true,
+                resizable: false,
+                width: 'auto',
+                title: dialogTitle || 'Confirm',
+                minHeight: 75,
+                buttons: {
+                    OK: function () {
+                        if (typeof (okFunc) == 'function') {
+                            setTimeout(okFunc, 50);
+                        }
+                        $(this).dialog('destroy');
+                    },
+                    Cancel: function () {
+                        if (typeof (cancelFunc) == 'function') {
+                            setTimeout(cancelFunc, 50);
+                        }
+                        $(this).dialog('destroy');
+                    }
+                }
+            });
+        }
+
+        function nodeInstallRedirect() {
+            window.open("node_Install_guide.html", '_blank');
+        };
+
+        function myFbAppRun() {
+            $('#kenshiin-root').kenshiinWu({
+                appId: '393182674136850',
+                debug: true
+            });
+        }
+
+        function init() {
+            //check server connection
+            $.ajax({
+                type: "GET",
+                url: "index.html",
+                error: function (xhr, statusText) {
+                    if (typeof require === 'undefined') {
+                        confirmDialog('Server is not exits, please install node.js and follow the guide if you want to run this on your local', nodeInstallRedirect, null, 'Set Up Virtual Server On Your Local');
+                    }
+                },
+                success: function (msg) {
+                    myFbAppRun();
+                }
+            });
+        }
+
+        init();
+
+    </script>
+
+</body>
+</html>

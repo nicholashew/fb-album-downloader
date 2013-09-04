@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Simple Facebook Bulk Photo Download</title>
+    <link href="css/style.css" rel="stylesheet" />  
+    <script src="js/jquery-1.8.3.min.js" type="text/javascript"></script>
+</head>
+<body>
+
+    <div class="container">        
+        <ol>
+            <li>
+                <h2>Simple Manual Bulk Download Facebook Album</h2>
+            </li>
+            <li>
+                <div>
+                    <span>Facebook Photo Collections Html Markup : </span>
+                    <a href="#" id="sample">Sample Markup</a>
+                    <div id="contentSample" style="display: none;">
+                        <ol style="margin-left: -40px;">
+                            <li><span><</span><span>div id="collection_wrapper_xxxxxxxx"></span></li>
+                            <li>&nbsp;&nbsp;<span><</span><span>div class="tagWrapper"></span></li>
+                            <li>&nbsp;&nbsp;&nbsp;&nbsp;
+								<span><</span>
+                                <span>i style="background-image: url(https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-ash3/p206x206/....jpg);" class="uiMediaThumbImg"></span>
+                                <span><</span><span>/i></span>
+                            </li>
+                            <li>&nbsp;&nbsp;<span><</span><span>/div></span></li>
+                            <li><span><</span><span>/div></span></li>
+                        </ol>
+                        <hr />
+                        <div>
+                            <p>div id="collection_wrapper_...." is a wrapper</p>
+                            <p>
+                                div class="tagWrapper" is individual image wrapper (MUST contain in markup)<p />
+                                <p>i is a element store with image url (MUST contain in markup)</p>
+                        </div>
+                    </div>
+                    <textarea id="txt_fbPhotoCollectionsHtmlMarkup" rows="4" cols="50"></textarea>
+                    <input id="btnInitContent" type="button" value="Generate Content" style="vertical-align: top;" />
+                    <div class="loading-wrapper">
+                        <div class="loading"></div>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div id="msgBox">
+                    <span id="lblMsg">&nbsp;</span>
+                </div>
+            </li>
+            <li>
+                <input id="btnDownload" type="button" value="Bulk Download" />
+            </li>
+        </ol>
+    </div>
+        
+    <div id="gnCtnt">
+        <div id="imgInit" style="display: none;"></div>
+        <div id="fb_pictures_collections_content_container" style="display: none;"></div>
+    </div>
+
+    <div class="overlay-wrapper"></div>
+
+    <script src="js/fbPhotoSaver.js" type="text/javascript"></script>    
+
+</body>
+</html>

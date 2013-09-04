@@ -1,0 +1,460 @@
+﻿
+ol li
+{
+    list-style: none;
+    margin: 5px;
+}
+
+h2
+{
+    text-decoration: underline;
+}
+
+.container
+{
+    width: 630px;
+    border: 1px solid gray;
+    margin: 50px auto;
+}
+
+#contentSample
+{
+    width: 550px;
+    border: 2px solid #08136c;
+    background-color: #eeeeee;
+    text-indent: 10px;
+}
+
+.success
+{
+    width: 95%;
+    margin: 2%;
+    border: 1px solid green;
+    background-color: rgb(232, 255, 232);
+    text-indent: 10px;
+}
+
+.error
+{
+    width: 95%;
+    margin: 2%;
+    border: 1px solid red;
+    background-color: rgb(255, 238, 232);
+    margin: 2%;
+    text-indent: 10px;
+}
+
+.warning
+{
+    width: 95%;
+    margin: 2%;
+    border: 1px solid yellow;
+    background-color: rgb(255, 255, 232);
+    text-indent: 10px;
+}
+
+.overlay-wrapper
+{
+    display: none;
+    z-index: 999;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: url(../images/overlay.png);
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+.loading-wrapper
+{
+    display: none;
+    width: 16px;
+    height: 16px;
+    vertical-align: top;
+}
+
+.loading
+{
+    display: block;
+    background: url(../images/loading.gif) no-repeat center center;
+    width: 100%;
+    height: 100%;
+}
+
+/*==================================*/
+
+a
+{
+    color: #3b5998;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+    a:hover
+    {
+        text-decoration: underline;
+    }
+
+.clearfix:after
+{
+    clear: both;
+    content: ".";
+    display: block;
+    font-size: 0;
+    height: 0;
+    line-height: 0;
+    visibility: hidden;
+}
+
+.clearfix
+{
+    zoom: 1;
+}
+
+.kenshiin-albums-actions
+{
+    margin-top: 5px;
+    margin-bottom: -5px;
+    text-align: right;
+    width: 100%;
+    display: block;
+}
+
+    .kenshiin-albums-actions .kenshiin-albums-actions-bulk-download
+    {
+        margin: 5px 15px 5px 0px;
+        display: inline-block;
+    }
+
+.kenshiin-albumList
+{
+    width: 618px;
+    display: block;
+    margin: 0px;
+    list-style: none;
+    padding: 5px;
+}
+
+.kenshiin-albumListItem
+{
+    width: 196px;
+    height: 245px;
+    overflow: hidden;
+    display: inline-block;
+    margin: 5px;
+    /*border:1px solid #89919c;*/
+}
+
+    .kenshiin-albumListItem.checked
+    {
+        box-shadow: 0 -1px 0 0 #b9e5f5, 0 1px 4px 0 #b9e5f5;
+    }
+
+.kenshiin-albumListItem-Wrapper
+{
+    width: 196px;
+    height: inherit;
+    display: inline-block;
+    overflow: hidden;
+    position: relative;
+    vertical-align: bottom;
+}
+
+.kenshiin-albumStage
+{
+}
+
+.kenshiin-albumListItem-coverWrapper .kenshiin-albumListItem-coverSelect.checked
+{
+    background-image: url(http://localhost:8888/images/check-mark.gif) !important;
+    background-repeat: no-repeat;
+    background-position: center center;
+    -moz-background-size: 100%;
+    -webkit-background-size: 100%;
+    background-size: 100%;
+    width: 30%;
+    height: 30%;
+    position: absolute;
+    bottom: 0;
+    left: 70%;
+}
+
+.kenshiin-albumListItem-coverWrapper
+{
+    overflow: hidden;
+    width: 196px;
+    height: 196px;
+    opacity: 0;
+    background-color: #fff;
+    border: 0;
+    left: 0;
+    opacity: 1;
+    padding: 0;
+    position: absolute;
+    top: 0;
+    -webkit-transition: opacity .4s ease;
+}
+
+.kenshiin-albumListIItem-coverImage
+{
+}
+
+
+/*==== photoDetails ====*/
+.kenshiin-photoDetails
+{
+    margin: 0;
+    padding: 0;
+    width: 196px;
+    display: block;
+    position: absolute;
+    bottom: 0;
+}
+
+    .kenshiin-photoDetails .kenshiin-photoText
+    {
+        overflow: visible;
+        border: 1px solid #e9eaed;
+        border-top: none;
+        font-size: 11px;
+        height: 40px;
+        padding: 6px 8px 5px;
+        position: relative;
+        text-align: left;
+        word-wrap: break-word;
+    }
+
+        .kenshiin-photoDetails .kenshiin-photoText .kenshiin-photoTextTitle
+        {
+            font-weight: bold;
+            display: inline-block;
+            font-family: 'helvetica neue', helvetica, arial, sans-serif;
+            font-size: 11px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .kenshiin-photoDetails .kenshiin-photoText .kenshiin-photoTextSubTitle
+        {
+            color: #89919c;
+            line-height: inherit;
+        }
+
+        .kenshiin-photoDetails .kenshiin-photoText .kenshiin-photoTextSelectedPhotos
+        {
+            font-style: italic;
+            font-size: 15px;
+            font-weight: bold;
+            line-height: inherit;
+            color: #8e33ce;
+            text-shadow: 1px -1px 10px #ffadf3;
+        }
+
+        .kenshiin-photoDetails .kenshiin-photoText .kenshiin-albumAction
+        {
+            display: block;
+            float: right;
+            font-size: 12px;
+            font-family: 'helvetica neue', helvetica, arial, sans-serif;
+            white-space: nowrap;
+        }
+
+            .kenshiin-photoDetails .kenshiin-photoText .kenshiin-albumAction a
+            {
+                margin: 2px;
+                display: inline-block;
+            }
+
+
+/*==== album photos stage ====*/
+.kenshiin-albumStage
+{
+    display: none;
+}
+
+.kenshiin-albumStage-wrapper
+{
+    width: 80%;
+    height: 90%;
+    background-color: #fff;
+    margin: 2.5% auto;
+}
+
+.kenshiin-albumStage-skinStage
+{
+    padding: 2%;
+    float: left;
+    height: 100%;
+    width: 96%;
+    display: block;
+}
+
+.kenshiin-albumStage-outerStage
+{
+    border: 1px solid #eef;
+    height: 94%;
+    width: 100%;
+    display: block;
+    float: left;
+}
+
+.kenshiin-albumStage-innerStage
+{
+    margin: 10px;
+    overflow-y: scroll;
+    min-height: 94%;
+    max-height: 94%;
+}
+
+.kenshiin-albumStage-btnClose
+{
+    background-image: url(http://localhost:8888/images/close_button.png) !important;
+    background-repeat: no-repeat;
+    background-position: center center;
+    -moz-background-size: 36px;
+    -webkit-background-size: 36px;
+    background-size: 36px;
+    position: absolute;
+    top: 15px;
+    right: 9%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    z-index: 999;
+}
+
+.kenshiin-albumStage-wrapper .kenshiin-albumStage-photoContainer
+{
+    display: inline-block;
+    margin: 0 0 0 -40px;
+    list-style: none;
+}
+
+.kenshiin-albumStage-photoList
+{
+    width: 132px;
+    height: 180px;
+    overflow: hidden;
+    display: inline-block;
+    margin: 5px;
+}
+
+    .kenshiin-albumStage-photoList .kenshiin-albumStage-photoListWrap
+    {
+        width: 132px;
+        height: inherit;
+        display: inline-block;
+        overflow: hidden;
+        position: relative;
+        vertical-align: bottom;
+    }
+
+    .kenshiin-albumStage-photoList .kenshiin-albumStage-photoListCoverWrap
+    {
+        overflow: hidden;
+        width: 132px;
+        height: 132px;
+        opacity: 0;
+        background-color: #fff;
+        border: 0;
+        left: 0;
+        opacity: 1;
+        padding: 0;
+        position: absolute;
+        top: 0;
+        -webkit-transition: opacity .4s ease;
+    }
+
+    .kenshiin-albumStage-photoList.checked
+    {
+        box-shadow: 0 -1px 0 0 #b9e5f5, 0 1px 4px 0 #b9e5f5;
+    }
+
+    .kenshiin-albumStage-photoList .kenshiin-albumStage-photoListCoverWrap .kenshiin-albumStage-photoListSelect.checked
+    {
+        background-image: url(http://localhost:8888/images/check-mark.gif) !important;
+        background-repeat: no-repeat;
+        background-position: center center;
+        -moz-background-size: 100%;
+        -webkit-background-size: 100%;
+        background-size: 100%;
+        width: 30%;
+        height: 30%;
+        position: absolute;
+        bottom: 0;
+        left: 70%;
+    }
+
+
+    .kenshiin-albumStage-photoList .kenshiin-albumStage-photoListCoverWrap .kenshiin-albumStage-photo
+    {
+    }
+
+    .kenshiin-albumStage-photoList .kenshiin-albumStage-photo-fancyViewIcon
+    {
+        background-image: url(../images/view.png) !important;
+        background-repeat: no-repeat;
+        width: 36px;
+        height: 36px;
+        background-size: 100%;
+        margin: 0 10px;
+    }
+
+    .kenshiin-albumStage-photoList .kenshiin-albumStage-photo-downloadClickIcon
+    {
+        background-image: url(../images/download.png) !important;
+        background-repeat: no-repeat;
+        width: 36px;
+        height: 36px;
+        background-size: 100%;
+        margin: 0 10px;
+    }
+
+
+/*===== custom jquery-ui- dialog =====*/
+.ui-dialog-titlebar
+{
+    background: none;
+    border: 0px;
+    background-color: #fff;
+    color: #000;
+    cursor: default;
+    font-size: 16px;
+    font-weight: normal;
+    line-height: 24px;
+    margin: 0 0 16px;
+}
+
+#kenshiin-popUp.ui-dialog-content.ui-widget-content
+{
+    font-size: 13px;
+}
+
+#kenshiin-popUp-message
+{
+    min-height: 100px;
+}
+
+#kenshiin-popUp .kenshiin-popUp-download-mirror p
+{
+    margin: 5px 0;
+}
+
+#kenshiin-popUp .kenshiin-popUp-download-mirror a
+{
+    color: #3b5998;
+    cursor: pointer;
+    text-decoration: none;
+    margin: 0 10px 0 0;
+}
+
+    #kenshiin-popUp .kenshiin-popUp-download-mirror a:hover
+    {
+        text-decoration: underline;
+    }
