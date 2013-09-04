@@ -20,7 +20,8 @@
              );
             this.timer = null;
             this.status = {
-                logging: false
+                logging: false,
+                getAlbumPhotosActive: false
             };
             this.tpl = {
                 wrap: '<div id="kenshiin-wrapper"></div>',
@@ -50,8 +51,6 @@
     iMissU.prototype = {
 
         _init: function (target) {
-
-            //this.self = this;
 
             if (!this.options.appId) {
                 if (this.options.debug) {
@@ -144,23 +143,27 @@
         },
 
         _dialogMsg: function (message, title, embedDOM) {
-            var popUp = document.getElementById('kenshiin-popUp');
-            var popUpMsg = document.getElementById('kenshiin-popUp-message');
+            var popUp = document.getElementById('kenshiin-popUp'),
+                popUpMsg = document.getElementById('kenshiin-popUp-message');
+
             if (!popUp) {
                 popUp = document.createElement('div');
                 popUp.id = 'kenshiin-popUp';
                 popUpMsg = document.createElement('div');
                 popUpMsg.id = 'kenshiin-popUp-message';
                 popUp.appendChild(popUpMsg);
-                document.body.appendChild(popUp);                
+                document.body.appendChild(popUp);
             }
+
             popUpMsg.innerText = message;
+
             if (embedDOM) {
                 popUp.appendChild(embedDOM);
             }
+
             $("#kenshiin-popUp").dialog({
                 modal: true,
-                title: title,                
+                title: title,
                 width: '400px',
                 minHeight: '150px',
                 minWidth: '400px',
@@ -176,7 +179,7 @@
 
         _loadingShow: function () {
             if (!this.overlay) {
-                this.overlay = $(this.tpl.overLay);                
+                this.overlay = $(this.tpl.overLay);
             }
             this.overlay.append(this.tpl.loading);
             $('body').append(this.overlay);
@@ -190,10 +193,10 @@
             }
         },
 
-        getArrayObjectByKey: function (array, key, value) {
-            for (var i = 0; i < array.length; i++) {
-                if (array[i][key] === value) {
-                    return { data: array[i], index: i };
+        getArrayObjectByKey: function (arrayObj, key, value) {
+            for (var i = 0; i < arrayObj.length; i++) {
+                if (arrayObj[i][key] === value) {
+                    return { data: arrayObj[i], index: i };
                 }
             }
             return null;
@@ -271,7 +274,7 @@
         getAlbumsDataImgDataList: function () {
 
             var self = this,
-                imgUrl = this.albumsDataZip.imgList[this.albumsDataZip.counter].url, 
+                imgUrl = this.albumsDataZip.imgList[this.albumsDataZip.counter].url,
                 imgName = this.albumsDataZip.imgList[this.albumsDataZip.counter].filename;
 
             this.albumsDataZip.getComplete = false;
@@ -318,7 +321,7 @@
 
                 zip.folder(zipName).file(imgName, imgData, { base64: true });
             }
-            this.albumsDataZip.base64zip = zip.generate();            
+            this.albumsDataZip.base64zip = zip.generate();
 
             // data URI            
             if (!data_uri) {
@@ -340,7 +343,7 @@
             } catch (e) {
                 blobLink.innerHTML += " (not supported on this browser)";
             }
-           
+
             //dialog popup
             var uri_blob_DOM = document.createElement('div');
             uri_blob_DOM.className = 'kenshiin-popUp-download-mirror';
@@ -350,7 +353,7 @@
             this._dialogMsg('Your download will begin shortly', 'Zipping Complete', uri_blob_DOM);
 
             //auto download zip
-            window.location.href = "data:application/zip;base64," + this.albumsDataZip.base64zip;            
+            window.location.href = "data:application/zip;base64," + this.albumsDataZip.base64zip;
 
         },
 
@@ -397,11 +400,11 @@
             }
 
             if ($('#kenshiin-albumStage-' + aid).data('albumLoaded') === undefined) {
-                var isSelectAll = true; 
+                var isSelectAll = true;
                 self = this,
                 startTime = new Date().getTime();
 
-                this.getAlbumPhotos(aid, isSelectAll);
+                this.getAlbumPhotos(aid, isSelectAll, false);
 
                 this._runTimer(function () {
                     var dataLoaded = $('#kenshiin-albumStage-' + aid).data('albumLoaded'),
@@ -421,27 +424,67 @@
         },
 
         _downloadAllAlbum: function () {
-            //get checked select all album
-            console.log(this.albumsData);
-            console.log(this.photosData);
-            for (var i = 0, l = dataList.length; i < l; i++) {
 
+            var self = this,
+                funcQueue = [], //array and append function to queue
+                wrapFunction = function (fn, context, params) {
+                    return function () {
+                        fn.apply(context, params);
+                    };
+                };
+
+
+            // Wrap loadAlbum function Queue if its unload
+            for (var i = 0, l = this.albumsData.length; i < l; i++) {
+                var albumID = this.albumsData[i].aid,
+                    imgCount = this.albumsData[i].count;
+
+                if (imgCount > 0) {
+                    var objAlbumPhotoData = this.getArrayObjectByKey(this.photosData, 'aid', albumID);
+                    if (!objAlbumPhotoData) {
+                        // Wrap the function.  Make sure that the params are an array.
+                        var func = wrapFunction(this.getAlbumPhotos, this, [albumID, true, false]);
+                        funcQueue.push(func);
+                    }
+                }
             }
-            //get photosData
-            //compare 
-            //set timer
-            //loadAlbum if uncheck
-            //end timer while all load
-            //callback generating all photo
-            //generate as a zip
-            //download
+
+            //while (funcQueue.length > 0) {
+            //    (funcQueue.shift())();
+            //}
+
+            this._dialogMsg('This might take a several minutes for large files, please do not close this browser until the zip is ready.', 'Preparing Zip Data', null);
+
+            // Run Queue
+            function exeFuncQueue() {
+
+                // Remove and execute all items in the array
+                (funcQueue.shift())();
+
+                // Detect complete store photodata from fb.api
+                var qTimer = setInterval(function () {
+                    if (self.status.getAlbumPhotosActive === false) {
+                        clearInterval(qTimer);
+                        if (funcQueue.length > 0) {
+                            exeFuncQueue();
+                        }
+                        else {
+                            self._downloadSelectedAlbum();
+                        }
+                    }
+                }, 100);
+            }
+
+            // Start Queue functions
+            exeFuncQueue();
+
         },
 
         _downloadSelectedAlbum: function () {
 
             var self = this,
                 dataList = this.photosData;
-            
+
             this.albumsDataZip.imgList = [];
 
             for (var i = 0, l = dataList.length; i < l; i++) {
@@ -607,21 +650,22 @@
             }
         },
 
+
         _updateAlbumDataSelectAll: function (aid, isSelectAll) {
 
             if ($('#kenshiin-albumStage-' + aid).data('albumLoaded') === undefined) {
-                this.getAlbumPhotos(aid, isSelectAll);
+
                 var self = this,
-                    startTime = new Date().getTime()
+                    startTime = new Date().getTime();
 
-                this._runTimer(function () {
-                    var dataLoaded = $('#kenshiin-albumStage-' + aid).data('albumLoaded'),
-                        delta = new Date().getTime();
-                    if (dataLoaded || (delta - startTime) > (60000)) { //max 1minute
-                        self._destroyTimer();
-                        if (dataLoaded) self._setAlbumDataSelectAll(aid, isSelectAll);
+                this.getAlbumPhotos(aid, isSelectAll, true);
+
+                var tempTimer = setInterval(function () {
+                    var delta = new Date().getTime();
+                    if (self.status.getAlbumPhotosActive === false || (delta - startTime) > 10000) {
+                        clearInterval(tempTimer);
+                        self._setAlbumDataSelectAll(aid, isSelectAll);
                     }
-
                 });
 
             } else {
@@ -642,7 +686,7 @@
 
         },
 
-        _onAlbumPhotoGot: function (data) {
+        _onAlbumPhotoGot: function (aid, data) {
 
             var self = this,
 
@@ -667,7 +711,7 @@
                }).appendTo(innerStage),
 
                btnCloseStage = $('<a/>', {
-                   'id': 'kenshiin-albumStage-btnClose-' + data[0].aid,
+                   'id': 'kenshiin-albumStage-btnClose-' + aid,
                    'class': 'kenshiin-albumStage-btnClose',
                    click: function () {
                        var aid = $(this).attr('id').replace('kenshiin-albumStage-btnClose-', '');
@@ -716,7 +760,7 @@
                                 alt: photosData.caption
                             }
                         }).appendTo(photoListCoverWrap),
-                        
+
                         photoDetails = $('<div/>', {
                             'class': 'clearfix kenshiin-photoDetails',
                             'style': 'width:132px;'
@@ -746,17 +790,21 @@
                 }
             }
 
-            $('#kenshiin-albumStage-' + data[0].aid).append(albumStageWrap).data('albumLoaded', true);
+            $('#kenshiin-albumStage-' + aid).append(albumStageWrap).data('albumLoaded', true);
 
-            //using fancybox plugin as photo viewer
-            $('.kenshiin-albumStage-photo-fancy-' + photosData.aid).fancybox();
+            //using fancybox plugin as photo viewer           
+            $('.kenshiin-albumStage-photo-fancy-' + aid).fancybox();
+
         },
 
-        getAlbumPhotos: function (aid, selectAll) {
+        // complete status --> this.status.getAlbumPhotosActive
+        getAlbumPhotos: function (aid, selectAll, showOverlay) {
 
             var self = this;
 
-            self._loadingShow();
+            self.status.getAlbumPhotosActive = true;
+
+            if (showOverlay) self._loadingShow();
 
             FB.api({
                 method: 'fql.multiquery',
@@ -764,30 +812,38 @@
                     query1: 'SELECT aid, pid, caption, src_small, src_small_height, src_small_width, src_big, src_big_height, src_big_width FROM photo WHERE aid = ' + aid
                 }
             },
-               function (response) {
-                   var parsed = new Array();
+                function (response) {
+                    var parsed = new Array();
 
-                   $(response[0].fql_result_set).each(function (index, value) {
-                       var result = {
-                           aid: value.aid,
-                           pid: value.pid,
-                           caption: value.caption,
-                           src_small: value.src_small,
-                           src_small_height: value.src_small_height,
-                           src_small_width: value.src_small_width,
-                           src_big: value.src_big,
-                           src_big_height: value.src_big_height,
-                           src_big_width: value.src_big_width,
-                           selected: selectAll
-                       };
-                       parsed.push(result);
+                    $(response[0].fql_result_set).each(function (index, value) {
+                        var result = {
+                            aid: value.aid,
+                            pid: value.pid,
+                            caption: value.caption,
+                            src_small: value.src_small,
+                            src_small_height: value.src_small_height,
+                            src_small_width: value.src_small_width,
+                            src_big: value.src_big,
+                            src_big_height: value.src_big_height,
+                            src_big_width: value.src_big_width,
+                            selected: selectAll
+                        };
+                        parsed.push(result);
 
-                   });
+                    });
 
-                   self.photosData.push({ 'aid': aid, 'photoData': parsed });
-                   self._onAlbumPhotoGot(parsed);
-                   self._loadingClose();
-               });
+                    self.photosData.push({ 'aid': aid, 'photoData': parsed });
+                    self._onAlbumPhotoGot(aid, parsed);
+                    if (showOverlay) self._loadingClose();
+                });
+
+            self._runTimer(function () {
+                if (self.getArrayObjectByKey(self.photosData, 'aid', aid)) {
+                    self._destroyTimer();
+                    self.status.getAlbumPhotosActive = false;
+                }
+            });
+
         },
 
         _onAlbumsGot: function (data) {
@@ -922,7 +978,7 @@
 
                                     if ($('#kenshiin-albumStage-' + aid).data('albumLoaded') === undefined) {
                                         //console.log('selectAll', selectAll);
-                                        self.getAlbumPhotos(aid, isSelectAll);
+                                        self.getAlbumPhotos(aid, isSelectAll, true);
                                     } //else {
                                     //    self._updateAlbumDataSelectAll(aid, isSelectAll);
                                     //}
