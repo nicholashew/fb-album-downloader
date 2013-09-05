@@ -4,8 +4,6 @@
 
         iMissU = function (target, options) {
             this.$T = $(target);
-            this.albumsData = [];
-            this.photosData = [];
             this.options = $.extend(
                  true,
                  {
@@ -14,27 +12,17 @@
                      facebookScriptUrl: 'http://connect.facebook.net/en_US/all.js',
                      showEmptyAlbum: true,
                      displayAlbumCover: true,
-                     debug: false
+                     debug: false,
+                     flashOptions: {
+                         swf: 'js/Downloadify-master/media/downloadify.swf',
+                         downloadImage: 'js/Downloadify-master/images/download.png'
+                     }
                  },
                  options
              );
-            this.timer = null;
-            this.status = {
-                logging: false,
-                getAlbumPhotosActive: false
-            };
-            this.tpl = {
-                wrap: '<div id="kenshiin-wrapper"></div>',
-                container: '<div class="kenshiin-container"></div>',
-                albumWrap: '<div class="kenshiin-albums-wrapper" ></div>',
-                imageWrap: '<div class="kenshiin-images-wrapper" ></div>',
-                imageSelection: '<div class="kenshiin-image-selection" ></div>',
-                fbConnectBtn: '<a id="fbConnectBtn" href="#" >Click to connect to Facebook</a>',
-                overLay: '<div class="overlay-wrapper"></div>',
-                loading: '<div class="loading"></div>',
-                msgBox: '<div class="msgBox"><span></span></div>'
-            };
-            this.overlay = null;
+            this.friendList = [];
+            this.albumsData = [];
+            this.photosData = [];
             this.albumsDataZip = {
                 base64zip: null,
                 imgList: [],
@@ -43,9 +31,31 @@
                 getComplete: false,
                 ready: false
             };
-            this._init(target);
+            this.status = {
+                myUserID: null,
+                logging: false,
+                getAlbumPhotosActive: false
+            };
+            this.timer = null;
+            this.overlay = null;
+            this.tpl = {
+                wrap: '<div id="kenshiin-wrapper"></div>',
+                container: '<div class="kenshiin-container"></div>',
+                etab: '<ul class="etabs clearfix"><li class="tab first-child"><a href="#tab-albums">Photos</a></li><li class="tab"><a href="#tab-fiends">Friends</a></li></ul>',
+                albumWrap: '<div id="tab-albums" class="kenshiin-images-wrapper" ></div>',
+                friendsWrap: '<div id="tab-fiends" class="kenshiin-friends-wrapper" ></div>',
+                imageSelection: '<div class="kenshiin-image-selection" ></div>',
+                fbConnectBtn: '<a id="fbConnectBtn" href="#" >Click to connect to Facebook</a>',
+                overLay: '<div class="overlay-wrapper"></div>',
+                loading: '<div class="loading"></div>',
+                msgBox: '<div class="msgBox"><span></span></div>',
+                progressBar: '<div id="kenshiin-progressBar-panel"><div id="kenshiin-progressBar"><div></div></div></div>'
+            };
 
+            //The Init Called
+            this._init(target);
             return this;
+
         };
 
     iMissU.prototype = {
@@ -68,6 +78,7 @@
             }
 
             $(target[0]).append(this.tpl.wrap).prepend(this.tpl.container).append(this.tpl.fbConnectBtn);
+            $('body').append(this.tpl.progressBar);
 
             var self = this;
             $('#fbConnectBtn').click(function (e) {
@@ -91,25 +102,52 @@
                 });
 
                 FB.login(function (response) {
+                    console.log(response);
                     if (response.status === 'connected') {
+
+                        $('#fbConnectBtn').hide();
+
+                        self.status.myUserID = response.authResponse.userID;
                         self.status.logging = true;
-                        if (!self.options.debug) {
-                            $('#fbConnectBtn').hide();
-                        }
+
+                        //Append Tab containers
+                        var container = $('.kenshiin-container');
+                        container.append(self.tpl.etab).append(self.tpl.albumWrap).append(self.tpl.friendsWrap);
+
+                        $(document).ready(function () {
+
+                            $('.kenshiin-container').easytabs({
+                                updateHash: false
+                            });
+
+                            $(".etabs a").click(function (e) {
+                                e.preventDefault();
+                                if ($(this).attr('href') === '#tab-fiends' && self.friendList.length === 0) {
+                                    self.getFriendList();
+                                }
+                            });
+
+                        });
+
                         self._msgShow('preparing albums data...', 0);
-                        self.getAlbums();
+                        setTimeout(function () {
+                            self.getAlbums(self.status.myUserID);
+                        }, 1500);
+
                     } else {
-                        //console.log('response', response);
                         self._loadingClose();
                         self._msgShow('un authorize', 1);
                     }
-                }, { scope: 'user_photos' });
+                }, { scope: 'user_photos, friends_photos' });
 
             } else {
                 //reload
                 self._msgShow('refresh albums data...', 0);
                 $('.kenshiin-images-wrapper').remove();
-                self.getAlbums();
+                setTimeout(function () {
+                    self.getAlbums(self.status.myUserID);
+                }, 1500);
+
             }
 
         },
@@ -142,7 +180,7 @@
 
         },
 
-        _dialogMsg: function (message, title, embedDOM) {
+        _dialogMsg: function (message, title, embedDOM, onCloseFunction) {
             var popUp = document.getElementById('kenshiin-popUp'),
                 popUpMsg = document.getElementById('kenshiin-popUp-message');
 
@@ -158,6 +196,8 @@
             popUpMsg.innerText = message;
 
             if (embedDOM) {
+                var last_el = popUpMsg.nextSibling;
+                if (last_el) last_el.remove();
                 popUp.appendChild(embedDOM);
             }
 
@@ -175,6 +215,13 @@
                     }
                 }
             });
+
+            if (typeof onCloseFunction === 'function') {
+                $("#kenshiin-popUp").bind("dialogclose", function (event, ui) {
+                    onCloseFunction();
+                });
+            }
+
         },
 
         _loadingShow: function () {
@@ -191,6 +238,17 @@
                 this.overlay.empty();
                 this.overlay.hide();
             }
+        },
+
+        _progressToggleShow: function () {
+            $('#kenshiin-progressBar-panel').toggleClass('progress-active');
+        },
+
+        _progressDisplay: function (percent) {
+            var $element = $('#kenshiin-progressBar'),
+                progressBarWidth = percent * $element.width() / 100;
+
+            $element.find('div').animate({ width: progressBarWidth }, 1000 / 60).html(percent + "%&nbsp;");
         },
 
         getArrayObjectByKey: function (arrayObj, key, value) {
@@ -244,7 +302,7 @@
                         //console.log('its blank, loading...');
                         var curTime = new Date().getTime();
                         if ((curTime - startTime) >= (1000 * 300)) {
-                            console.log('time out 5min, ignore this image ' + imgName);
+                            //console.log('time out 5min, ignore this image ' + imgName);
                             clearInterval(myTimer);
                             self.albumsDataZip.complete = true;
                         }
@@ -286,11 +344,18 @@
                     clearInterval(taskTimer);
                     self.albumsDataZip.counter++;
                     if (self.albumsDataZip.counter < self.albumsDataZip.imgList.length) {
-                        //self loop                       
+                        //self loop 
+                        var percent = Math.floor(100 / (self.albumsDataZip.imgList.length / self.albumsDataZip.counter));
+                        self._progressDisplay(percent);
                         self.getAlbumsDataImgDataList();
                     } else {
-                        self.albumsDataZip.ready = true;
-                        console.log('albumsDataZip is Ready to download');
+                        self._progressDisplay(100);
+
+                        setTimeout(function () {
+                            self.albumsDataZip.ready = true;
+                        }, 1500);
+
+                        //console.log('albumsDataZip is Ready to download');
                     }
                 }
             }, 60);
@@ -304,15 +369,18 @@
             this.albumsDataZip.ready = false;
 
             if (this.albumsDataZip.imgList.length > 0) {
+                this._progressToggleShow();
                 this.getAlbumsDataImgDataList();
             }
 
         },
 
         generateAlbumZip: function (zipName) {
-            var zip = new JSZip(),
+            var self = this,
+                zip = new JSZip(),
                 data_uri = document.getElementById('data_uri'),
-                blobLink = document.getElementById('blob');
+                blobLink = document.getElementById('blob'),
+                swfLink = document.getElementById('downloadify');
 
             for (var i = 0, l = this.albumsDataZip.imgDataResultList.length; i < l; i++) {
                 var objImgData = this.albumsDataZip.imgDataResultList[i],
@@ -320,8 +388,19 @@
                     imgData = objImgData.data.substr(objImgData.data.indexOf(',') + 1);
 
                 zip.folder(zipName).file(imgName, imgData, { base64: true });
+
+                //console.log('generateAlbumZip ', i);
             }
             this.albumsDataZip.base64zip = zip.generate();
+
+            // swf downloadify
+            if (!swfLink) {
+                swfLink = document.createElement('a');
+                swfLink.id = 'downloadify';
+                swfLink.style.display = 'block';
+                swfLink.style.margin = '10px 0';
+                swfLink.innerText = 'You must have Flash 10 installed to download this file.';
+            }
 
             // data URI            
             if (!data_uri) {
@@ -347,83 +426,41 @@
             //dialog popup
             var uri_blob_DOM = document.createElement('div');
             uri_blob_DOM.className = 'kenshiin-popUp-download-mirror';
-            uri_blob_DOM.innerHTML = '<p>If it does not start, click below link to download.</p>'
+            uri_blob_DOM.innerHTML = '<p>Please click on below link to download.</p>'
+            uri_blob_DOM.appendChild(swfLink);
             uri_blob_DOM.appendChild(data_uri);
             uri_blob_DOM.appendChild(blobLink);
-            this._dialogMsg('Your download will begin shortly', 'Zipping Complete', uri_blob_DOM);
+
+            this._dialogMsg('Your zip files is ready to download.', 'Zipping Complete', uri_blob_DOM, function () { self._progressToggleShow(); });
+
+            // flash download button
+            Downloadify.create('downloadify', {
+                filename: function () { return zipName + '.zip'; },
+                data: function () { return zip.generate(); },
+                dataType: 'base64',
+                onComplete: function () { alert('Your File Has Been Saved!'); },
+                onCancel: function () { alert('You have cancelled the saving of this file.'); },
+                onError: function () { alert('You must choose something in the Album Photos or there will be nothing to save!'); },
+                swf: this.options.flashOptions.swf,
+                downloadImage: this.options.flashOptions.downloadImage,
+                width: 100,
+                height: 30,
+                transparent: true,
+                append: false
+            });
 
             //auto download zip
-            window.location.href = "data:application/zip;base64," + this.albumsDataZip.base64zip;
+            //try {
+            //    console.log('window.location.href blob method');
+            //    window.location.href = window.URL.createObjectURL(zip.generate({ type: "blob" }));                            
+            //} catch (e) {
+            //    console.log('window.location.href zip;base64 method');
+            //    window.location.href = "data:application/zip;base64," + this.albumsDataZip.base64zip;                
+            //}
 
         },
 
-        downloadURL: function downloadURL(url) {
-            var hiddenIFrameID = 'hiddenDownloader',
-                iframe = document.getElementById(hiddenIFrameID);
-            if (iframe === null) {
-                iframe = document.createElement('iframe');
-                iframe.id = hiddenIFrameID;
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-            }
-            iframe.src = url;
-        },
-
-        _downloadImage: function (url, filename) {
-
-            var downloadLink = $('<a/>', {
-                'href': url,
-                'download': filename,
-                src: url,
-            }).appendTo('body');
-
-            downloadLink[0].click();
-
-            downloadLink.remove();
-        },
-
-        _downloadAlbum: function (aid) {
-
-            var _self = this;
-
-            function downloading() {
-                var albumData = _self.getArrayObjectByKey(_self.photosData, 'aid', aid);
-                if (albumData.data) {
-                    for (var i = 0, l = albumData.data.photoData.length; i < l; i++) {
-                        if (albumData.data.photoData[i].selected) {
-                            var url = albumData.data.photoData[i].src_big,
-                                filename = 'album.__' + aid + '__.photo.__' + _self.getFileName(url);
-                            _self._downloadImage(url, filename);
-                        }
-                    }
-                }
-            }
-
-            if ($('#kenshiin-albumStage-' + aid).data('albumLoaded') === undefined) {
-                var isSelectAll = true;
-                self = this,
-                startTime = new Date().getTime();
-
-                this.getAlbumPhotos(aid, isSelectAll, false);
-
-                this._runTimer(function () {
-                    var dataLoaded = $('#kenshiin-albumStage-' + aid).data('albumLoaded'),
-                        delta = new Date().getTime();
-                    if (dataLoaded || (delta - startTime) > (60000)) { //max 1minute
-                        self._destroyTimer();
-                        if (dataLoaded) {
-                            self._setAlbumDataSelectAll(aid, isSelectAll);
-                            setTimeout(downloading, 1500);
-                        };
-                    }
-                });
-            } else {
-                downloading();
-            }
-
-        },
-
-        _downloadAllAlbum: function () {
+        downloadAllAlbum: function () {
 
             var self = this,
                 funcQueue = [], //array and append function to queue
@@ -469,7 +506,7 @@
                             exeFuncQueue();
                         }
                         else {
-                            self._downloadSelectedAlbum();
+                            self.downloadSelectedAlbum();
                         }
                     }
                 }, 100);
@@ -480,7 +517,7 @@
 
         },
 
-        _downloadSelectedAlbum: function () {
+        downloadSelectedAlbum: function () {
 
             var self = this,
                 dataList = this.photosData;
@@ -531,6 +568,17 @@
             }, 60);
         },
 
+        _resetAlbumDatas: function () {
+            this.albumsData = [];
+            this.photosData = [];
+            this.albumsDataZip.base64zip = null;
+            this.albumsDataZip.imgList = [];
+            this.albumsDataZip.imgDataResultList = [];
+            this.albumsDataZip.counter = 0;
+            this.albumsDataZip.getComplete = false;
+            this.albumsDataZip.ready = false;
+        },
+
         _recoverAlbumsCover: function (aid_arrayList) {
 
             var counter = 0,
@@ -539,11 +587,15 @@
 
                     var aid = list[counter];
 
+
                     FB.api({
                         method: 'fql.multiquery',
                         queries: {
                             //query by Last Modified Photo in the Album and Limit to return only one data row
-                            query1: 'select aid, pid, src_small, src_small_height, src_small_width, src_big, src_big_height, src_big_width from photo where aid=' + aid + ' ORDER BY modified desc LIMIT 1'
+                            query1: (aid === 'fake_aid') ?
+                                'SELECT src_big, src_big_height, src_big_width FROM photo WHERE owner!=me() and pid IN (SELECT pid FROM photo_tag WHERE subject = me()) ORDER BY modified desc LIMIT 1'
+                                :
+                                'select src_big, src_big_height, src_big_width from photo where aid=' + aid + ' ORDER BY modified desc LIMIT 1'
                         }
                     },
                    function (response) {
@@ -649,7 +701,6 @@
                 }
             }
         },
-
 
         _updateAlbumDataSelectAll: function (aid, isSelectAll) {
 
@@ -809,7 +860,10 @@
             FB.api({
                 method: 'fql.multiquery',
                 queries: {
-                    query1: 'SELECT aid, pid, caption, src_small, src_small_height, src_small_width, src_big, src_big_height, src_big_width FROM photo WHERE aid = ' + aid
+                    query1: (aid === 'fake_aid') ?
+                            'SELECT object_id, aid, pid, caption, src_small, src_small_height, src_small_width, src_big, src_big_height, src_big_width, caption FROM photo WHERE owner!=me() and pid IN (SELECT pid FROM photo_tag WHERE subject = me())'
+                            :
+                            'SELECT aid, pid, caption, src_small, src_small_height, src_small_width, src_big, src_big_height, src_big_width FROM photo WHERE aid = ' + aid
                 }
             },
                 function (response) {
@@ -850,18 +904,18 @@
 
             var self = this,
                 NoCoverImageList = [],
-                albumWrap = $(this.tpl.imageWrap),
 
+                //==download actions container
                 albumsActionWrap = $('<div/>', {
                     'class': 'clearfix kenshiin-albums-actions'
-                }).appendTo(albumWrap),
+                }),
 
                 downloadSelectedAlbum = $('<a/>', {
                     'class': 'kenshiin-albums-actions-bulk-download',
                     text: 'Download Selected Albums',
                     click: function (e) {
                         e.preventDefault();
-                        self._downloadSelectedAlbum();
+                        self.downloadSelectedAlbum();
                     }
                 }).appendTo(albumsActionWrap),
 
@@ -870,17 +924,19 @@
                     text: 'Download All Albums',
                     click: function (e) {
                         e.preventDefault();
-                        self._downloadAllAlbum();
+                        self.downloadAllAlbum();
                     }
                 }).appendTo(albumsActionWrap),
 
+                //==album items
                 albumList = $('<ul/>', {
                     'class': 'kenshiin-albumList'
-                }).appendTo(albumWrap);
-
+                });
 
             for (var i = 0; i < data.length; i++) {
                 var albumData = data[i];
+
+                //fake_aid bypass
                 if (albumData.count) {
 
                     if (albumData.cover === '') {
@@ -970,7 +1026,7 @@
                             'id': 'kenshiin-albumActionSelectPhotos-' + albumData.aid,
                             'class': 'kenshiin-albumActionSelectPhotos',
                             text: 'select',
-                            click: (albumData.count > 0) ?
+                            click: (albumData.count > 0 || albumData.aid === 'fake_aid') ?
                                 function (e) {
                                     e.preventDefault();
                                     var aid = $(this).attr('id').replace('kenshiin-albumActionSelectPhotos-', ''),
@@ -1009,7 +1065,8 @@
                 }
             }
 
-            $('.kenshiin-container').append(albumWrap);
+            //$('#tab-albums') === this.tpl.albumWrap
+            $('#tab-albums').append(albumsActionWrap).append(albumList);
 
             if (NoCoverImageList.length > 0) {
                 this._recoverAlbumsCover(NoCoverImageList);
@@ -1017,43 +1074,345 @@
 
         },
 
-        getAlbums: function () {
-            var self = this;
+        //fake albumData for tagged by friend
+        _addTaggedByFriendsAlbum: function (callback) {
+
+            var self = this,
+                taggedByFriendData = {
+                    aid: 'fake_aid',
+                    title: 'My Photo Tagged By Friends',
+                    cover: '',
+                    width: 196,
+                    height: 196,
+                    count: 0,
+                    link: ''
+                };
 
             FB.api({
                 method: 'fql.multiquery',
                 queries: {
-                    query1: 'select aid, name, link, photo_count, cover_object_id from album where owner = me()',
-                    query2: 'SELECT aid, pid, src_small, src_small_height, src_small_width, src_big, src_big_height, src_big_width FROM photo WHERE object_id  IN (SELECT cover_object_id FROM #query1)'
+                    query1: 'SELECT src_big FROM photo WHERE owner!=me() and pid IN (SELECT pid FROM photo_tag WHERE subject = me())'
                 }
             },
-                function (response) {
-                    var parsed = new Array();
+               function (response) {
+                   taggedByFriendData.cover = response[0].fql_result_set[0].src_big || '';
+                   taggedByFriendData.count = response[0].fql_result_set.length;
+                   self.albumsData.push(taggedByFriendData);
+                   callback();
+               });
+        },
 
-                    $(response[0].fql_result_set).each(function (index, value) {
+        getAlbums: function (uid) {
 
-                        var objCover = self._getAlbumCoverFromData(value.aid, response[1].fql_result_set),
-                            coverSrc = objCover === null ? '' : objCover.src_big,
-                            coverWidth = objCover === null ? 196 : objCover.src_big_width,
-                            coverheight = objCover === null ? 196 : objCover.src_big_width,
-                            result = {
-                                aid: value.aid,
-                                title: value.name,
-                                cover: coverSrc,
-                                width: coverWidth,
-                                height: coverheight,
-                                count: value.photo_count,
-                                link: value.link
-                            };
+            var self = this,
+                isMySelf = (uid === self.status.myUserID);
 
-                        parsed.push(result);
+            this._resetAlbumDatas();
+            $(this.tpl.albumWrap).empty();
+            //$('.kenshiin-container').empty();
 
-                    });
+            function fqlExec() {
 
-                    self.albumsData = parsed;
-                    self._onAlbumsGot(parsed);
-                    self._loadingClose();
-                });
+                FB.api({
+                    method: 'fql.multiquery',
+                    queries: {
+                        query1: (isMySelf === true) ?
+                                'select aid, name, link, photo_count, cover_object_id from album where owner = me()'
+                                :
+                                'SELECT aid, name, link, photo_count, cover_object_id from album WHERE owner IN (SELECT uid2 FROM friend WHERE uid1=me() and uid2 = ' + uid + ')',
+
+                        query2: 'SELECT aid, pid, src_small, src_small_height, src_small_width, src_big, src_big_height, src_big_width FROM photo WHERE object_id  IN (SELECT cover_object_id FROM #query1)'
+                    }
+                },
+               function (response) {
+                   var parsed = new Array();
+
+                   if (isMySelf) {
+                       parsed = $.merge($.merge([], self.albumsData), parsed);  //merge friendsTaggedPhotos 
+                   }
+
+                   $(response[0].fql_result_set).each(function (index, value) {
+
+                       var objCover = self._getAlbumCoverFromData(value.aid, response[1].fql_result_set),
+                           coverSrc = objCover === null ? '' : objCover.src_big,
+                           coverWidth = objCover === null ? 196 : objCover.src_big_width,
+                           coverheight = objCover === null ? 196 : objCover.src_big_width,
+                           result = {
+                               aid: value.aid,
+                               title: value.name,
+                               cover: coverSrc,
+                               width: coverWidth,
+                               height: coverheight,
+                               count: value.photo_count,
+                               link: value.link
+                           };
+
+                       parsed.push(result);
+
+                   });
+
+                   self.albumsData = parsed;
+                   self._onAlbumsGot(parsed);
+                   self._loadingClose();
+
+               });
+            }
+
+            if (isMySelf) {
+                this._addTaggedByFriendsAlbum(fqlExec);
+            } else {
+                fqlExec();
+            }
+        },
+
+        _onFriendListGot: function (data) {
+
+            /*
+            <div class="kenshiin-friendList-container">
+                <ul class="k-fl">
+                    <li id="kfl-0" class="kfl-i">
+                        <div class="kfl-i-wrap">
+                            <div class="kfl-i-cover">
+                                <img id="kfl-i-coverImage-USER_ID_HERE" class="kfl-i-coverImage" style="left:-2px; top:0px;" src="xxxx.jpg" height="266" alt="My Photo Tagged By Friends">
+                            </div>
+                            <div class="kfl-i-c">
+                                <ul class="kfl-i-c-dt">
+                                   <!-- dynamic add <li/> base on friend-data -->
+                                    var result = {
+                                        uid: value.uid,
+                                        name: value.name,
+                                        pic_square: value.pic_square || null,
+                                        sex: value.sex || null,
+                                        birthday_date: value.birthday_date || null,
+                                        relationship_status: value.relationship_status || null,
+                                        email: value.email || null,
+                                    };
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="clearfix kenshiin-photoDetails">
+                            <div class="kenshiin-photoText">
+                                <a class="kenshiin-photoTextTitle" href="" target="_blank" title="visit on facebook page"> My Photo Tagged By Friends</a>
+                                <div class="kenshiin-photoTextSubTitle">
+                                    3 photos
+                                <div class="kenshiin-albumAction">
+                                <a id="kenshiin-albumActionSelectPhotos-fake_aid" class="kenshiin-albumActionSelectPhotos">select</a>
+                                <a id="kenshiin-albumActionDownload-fake_aid" class="kenshiin-albumActionDownloadAlbum">download</a></div>
+                            </div>
+                                <div class="kenshiin-photoTextSelectedPhotos"></div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            */
+
+            var self = this,
+                 NoCoverImageList = [],
+
+                 //==download actions container
+                 albumsActionWrap = $('<div/>', {
+                     'class': 'clearfix kenshiin-albums-actions'
+                 }),
+
+                 downloadSelectedAlbum = $('<a/>', {
+                     'class': 'kenshiin-albums-actions-bulk-download',
+                     text: 'Download Selected Albums',
+                     click: function (e) {
+                         e.preventDefault();
+                         self.downloadSelectedAlbum();
+                     }
+                 }).appendTo(albumsActionWrap),
+
+                 downloadAllAlbum = $('<a/>', {
+                     'class': 'kenshiin-albums-actions-bulk-download',
+                     text: 'Download All Albums',
+                     click: function (e) {
+                         e.preventDefault();
+                         self.downloadAllAlbum();
+                     }
+                 }).appendTo(albumsActionWrap),
+
+                 //==album items
+                 albumList = $('<ul/>', {
+                     'class': 'kenshiin-albumList'
+                 });
+
+            for (var i = 0; i < data.length; i++) {
+                var albumData = data[i];
+
+                //fake_aid bypass
+                if (albumData.count) {
+
+                    if (albumData.cover === '') {
+                        NoCoverImageList.push(albumData.aid);
+                    }
+
+                    var album = $('<li/>', {
+                        'id': 'kenshiin-album-' + i,
+                        'class': 'kenshiin-albumListItem'
+                    }),
+
+                        albumListItemWrap = $('<div/>', {
+                            'class': 'kenshiin-albumListItem-Wrapper'
+                        }).appendTo(album),
+
+                        albumStage = $('<div/>', {
+                            'id': 'kenshiin-albumStage-' + albumData.aid,
+                            'class': 'kenshiin-albumStage overlay-wrapper',
+                            'data-title': albumData.title
+                        }).appendTo(album),
+
+                        coverWrap = $('<div/>', {
+                            'class': 'kenshiin-albumListItem-coverWrapper',
+                            click: (albumData.count > 0) ?
+                                function (e) {
+                                    e.preventDefault();
+                                    var d = $(this);
+                                    $(this).children('.kenshiin-albumListItem-coverSelect').toggleClass('checked');
+                                    $(this).closest('.kenshiin-albumListItem').toggleClass('checked');
+
+                                    //check, update
+                                    var coverImage = $(this).children('.kenshiin-albumListItem-coverImage'),
+                                        aid = coverImage.attr('id').replace('kenshiin-albumListItem-coverImage-', ''),
+                                        isSelectAll = $(this).closest('.kenshiin-albumListItem').hasClass('checked');
+
+                                    self._updateAlbumDataSelectAll(aid, isSelectAll);
+                                }
+                                :
+                                function () { }
+                        }).appendTo(albumListItemWrap),
+
+                        coverSelect = $('<div/>', {
+                            'class': 'kenshiin-albumListItem-coverSelect'
+                        }).appendTo(coverWrap),
+
+                        coverImage = $('<img/>', {
+                            'id': 'kenshiin-albumListItem-coverImage-' + albumData.aid,
+                            'class': 'kenshiin-albumListItem-coverImage',
+                            'style': 'left:-2px; top:0px;',
+                            attr: {
+                                src: albumData.cover,
+                                height: (albumData.width > albumData.height) ? 200 : 266,
+                                alt: albumData.title
+                            }
+                        }).appendTo(coverWrap),
+
+                        photoDetails = $('<div/>', {
+                            'class': 'clearfix kenshiin-photoDetails'
+                        }).appendTo(albumListItemWrap),
+
+                        photoText = $('<div/>', {
+                            'class': 'kenshiin-photoText'
+                        }).appendTo(photoDetails),
+
+                        albumTitle = $('<a/>', {
+                            'class': 'kenshiin-photoTextTitle',
+                            'href': albumData.link,
+                            'target': '_blank',
+                            'title': 'visit on facebook page',
+                            text: albumData.title
+                        }).appendTo(photoText),
+
+                        albumSubTitle = $('<div/>', {
+                            'class': 'kenshiin-photoTextSubTitle',
+                            text: albumData.count + ' photos'
+                        }).appendTo(photoText),
+
+                        selectedPhotos = $('<div/>', {
+                            'class': 'kenshiin-photoTextSelectedPhotos'
+                        }).appendTo(photoText),
+
+                        albumAction = $('<div/>', {
+                            'class': 'kenshiin-albumAction'
+                        }).appendTo(albumSubTitle),
+
+                        selectPhotos = $('<a/>', {
+                            'id': 'kenshiin-albumActionSelectPhotos-' + albumData.aid,
+                            'class': 'kenshiin-albumActionSelectPhotos',
+                            text: 'select',
+                            click: (albumData.count > 0 || albumData.aid === 'fake_aid') ?
+                                function (e) {
+                                    e.preventDefault();
+                                    var aid = $(this).attr('id').replace('kenshiin-albumActionSelectPhotos-', ''),
+                                        isSelectAll = $(this).closest('.kenshiin-albumListItem').hasClass('checked');
+
+                                    if ($('#kenshiin-albumStage-' + aid).data('albumLoaded') === undefined) {
+                                        //console.log('selectAll', selectAll);
+                                        self.getAlbumPhotos(aid, isSelectAll, true);
+                                    } //else {
+                                    //    self._updateAlbumDataSelectAll(aid, isSelectAll);
+                                    //}
+
+                                    $('#kenshiin-albumStage-' + aid).fadeIn(1000);
+                                }
+                                :
+                                function () { }
+                        }).appendTo(albumAction),
+
+                        downloadAlbum = $('<a/>', {
+                            'id': 'kenshiin-albumActionDownload-' + albumData.aid,
+                            'class': 'kenshiin-albumActionDownloadAlbum',
+                            text: 'download',
+                            click: (albumData.count > 0) ?
+                                function (e) {
+                                    e.preventDefault();
+                                    alert('download');
+                                    var aid = $(this).attr('id').replace('kenshiin-albumActionDownload-', '');
+                                    self._downloadAlbum(aid);
+                                }
+                                :
+                                function () { }
+                        }).appendTo(albumAction);
+
+                    album.appendTo(albumList);
+
+                }
+            }
+
+            //$('#tab-albums') === this.tpl.albumWrap
+            $('#tab-friends').append(albumsActionWrap).append(albumList);
+
+            if (NoCoverImageList.length > 0) {
+                this._recoverAlbumsCover(NoCoverImageList);
+            }
+        },
+
+        getFriendList: function () {
+
+            var self = this;
+            this.friendList = [];
+
+            FB.api({
+                method: 'fql.multiquery',
+                queries: {
+                    query1: 'SELECT uid, name, pic_square, sex, birthday_date, relationship_status, email FROM user WHERE uid IN (SELECT uid2 FROM friend WHERE uid1 = me())'
+                }
+            },
+               function (response) {
+                   console.log('getFriendList ', response[0].fql_result_set);
+                   var parsed = new Array();
+
+                   $(response[0].fql_result_set).each(function (index, value) {
+                       var result = {
+                           uid: value.uid,
+                           name: value.name,
+                           pic_square: value.pic_square || null,
+                           sex: value.sex || null,
+                           birthday_date: value.birthday_date || null,
+                           relationship_status: value.relationship_status || null,
+                           email: value.email || null,
+                       };
+
+                       parsed.push(result);
+
+                   });
+
+                   self.friendList = parsed;
+                   self._onFriendListGot(parsed);
+                   self._loadingClose();
+
+               });
         },
 
         DLOG: function () {

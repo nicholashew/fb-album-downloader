@@ -1,0 +1,143 @@
+/*
+	 Easy Tabs
+	 by Chris Coyier
+	 http://os.alfajango.com/easytabs/
+*/
+
+* { margin: 0; padding: 0; }
+body { font: 12px Arial, sans-serif; line-height: 1;}
+html { overflow-y: scroll; }
+a { color:#d52b1e; text-decoration: none; }
+a:hover { text-decoration: underline; }
+a:focus { outline: 0; }
+p { font-size: 15px; margin: 0 0 20px 0; }
+
+
+/* Generic Utility */
+.hide { position: absolute; top: -9999px; left: -9999px; }
+
+/* Specific to tabs */
+.etabs { margin: 0; padding: 0; width:751px; }
+.tab { /*display: inline-block; zoom:1; *display:inline;*/float:left; background: #f7d117; margin-left:1px; }
+.tab.first-child { margin-left:0; }
+.tab a { font-size: 15px; line-height: 6em; display: block; padding: 0 0px; outline: none; font-weight: bold; color:#000; width:187px; height:90px; text-align:center;}
+.tab a:hover { text-decoration: none; }
+.tab.active { background: #dedede; padding-top: 0px; position: relative; color:#000;}
+.tab a.active { font-weight: bold; color:#000; }
+.tab-container .panel-container { width: 749px; background: #dedede; border:1px solid #dedede;}
+
+
+
+
+/* @group Reset */
+/* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 1;
+}
+/* @end */
+
+/* Contain floats: h5bp.com/q */
+.clearfix:before, .clearfix:after { content: ""; display: table; }
+.clearfix:after { clear: both; }
+.clearfix { *zoom: 1; }
+
+
+h1{
+	font: lighter 2.5em 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+h2{
+	font: lighter 1.5em 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	border-bottom: 1px solid #ccc;
+	padding: 0 0 5px;
+}
+
+p{
+	font: lighter 0.9em/1.5em "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+	padding: 15px 0;
+}
+
+#accordion{
+	margin: 30px 0 0;
+	clear: both;
+}
+
+#changer{
+	margin: 10px 0;
+	padding: 0 0 20px;
+}
+
+#changer li{
+	float: left;
+	display: inline;
+}
+
+
+.candyaccordion{
+	width: 100%;
+	list-style: none;
+}
+
+.candyaccordion li{
+	list-style: none;
+	padding-bottom:3px;
+	background:url('../images/bar.jpg') repeat-x 0 0 #fff;
+}
+
+.candyaccordion .candytitle{
+	/*padding: 10px;
+	border-bottom: 2px solid #fff;*/
+	font: lighter 1.1em 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	background:url('../images/icon-arrow-expand.png') no-repeat 723px 14px;
+	font-weight: bold;
+	text-transform:uppercase;
+	cursor: pointer;
+	height:41px;
+}
+
+.candyaccordion .active-candytitle {
+	background:url('../images/icon-arrow-collapse.png') no-repeat 723px 14px;
+}
+
+.candyaccordion .candytitle p{
+	border-left:1px solid #dedede;
+	float:left;
+	line-height:40px;
+	margin:0;
+	padding:0 0 0 10px;
+	vertical-align:top;
+}
+
+.candyaccordion .candytitle p.img{
+	border-right:1px solid #fff;
+	padding:10px;
+}
+
+.candyaccordion .candytext{
+	background: #ffffff;
+	padding: 15px 10px;
+	font: 1em/1.5em "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+	border-left:1px solid #dedede;
+	margin-left:64px;
+}
