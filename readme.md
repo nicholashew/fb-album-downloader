@@ -27,12 +27,12 @@ Attach the kenshiin-root to your markup
 	<div id="kenshiin-root"></div>
 
 ### To Run it on local browser
-Download and install Node.js from http://nodejs.org/download/
+Download and install Node.js from http://nodejs.org/download/ <br/>
 After Install, open command prompt 
 <ul>
 <li>cd c://example/your/folder/path/here </li>
 <li>node server.js </li>
-<'ul>
+</ul>
 <pre>
 Static file server running at 
   => http://localhost:8888/ 
@@ -42,7 +42,7 @@ CTRL + C to shutdown
 now you can this run http://localhost:8888/ on your browsers
 
 
-# simpleDownload.html + fbPhotoSaver.js  
+### simpleDownload.html + fbPhotoSaver.js  
 Another simple manual downloading photos from facebok <br/>
 Open facebook any album, scroll to load all photos, copy album container HTML markup. <br/>
 Patse it on textarea and click generate contents follow by bulk download. <br/>
