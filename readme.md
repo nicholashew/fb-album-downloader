@@ -28,12 +28,14 @@ Attach the kenshiin-root to your markup
 
 ### To Run it on local browser
 Download and install Node.js from http://nodejs.org/download/
-After Install, open command prompt <br/>
-cd c://example/your/folder/path/here <br/>
-node server.js <br/>
+After Install, open command prompt 
+<ul>
+<li>cd c://example/your/folder/path/here </li>
+<li>node server.js </li>
+<'ul>
 <pre>
-Static file server running at <br/>
-  => http://localhost:8888/ <br/>
+Static file server running at 
+  => http://localhost:8888/ 
 CTRL + C to shutdown 
 </pre>
 
