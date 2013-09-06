@@ -16,7 +16,7 @@
                      flashOptions: {
                          swf: 'js/Downloadify-master/media/downloadify.swf',
                          downloadImage: 'js/Downloadify-master/images/download.png'
-                     }
+                     }                     
                  },
                  options
              );
@@ -41,9 +41,9 @@
             this.tpl = {
                 wrap: '<div id="kenshiin-wrapper"></div>',
                 container: '<div class="kenshiin-container"></div>',
-                etab: '<ul class="etabs clearfix"><li class="tab first-child"><a href="#tab-albums">Photos</a></li><li class="tab"><a href="#tab-friends">Friends</a></li></ul>',
+                etab: '<ul class="etabs clearfix"><li class="tab first-child"><a href="#tab-albums">Photos</a></li><li class="tab"><a href="#tab-fiends">Friends</a></li></ul>',
                 albumWrap: '<div id="tab-albums" class="kenshiin-images-wrapper" ></div>',
-                friendsWrap: '<div id="tab-friends" class="kenshiin-friends-wrapper" ></div>',
+                friendsWrap: '<div id="tab-fiends" class="kenshiin-friends-wrapper" ></div>',
                 imageSelection: '<div class="kenshiin-image-selection" ></div>',
                 fbConnectBtn: '<a id="fbConnectBtn" href="#" >Click to connect to Facebook</a>',
                 overLay: '<div class="overlay-wrapper"></div>',
@@ -104,34 +104,10 @@
                 FB.login(function (response) {
                     console.log(response);
                     if (response.status === 'connected') {
-
                         $('#fbConnectBtn').hide();
-
                         self.status.myUserID = response.authResponse.userID;
-                        self.status.logging = true;
-
-                        //Append Tab containers
-                        var container = $('.kenshiin-container');
-                        container.append(self.tpl.etab).append(self.tpl.albumWrap).append(self.tpl.friendsWrap);
-
-                        $(document).ready(function () {
-
-                            $('.kenshiin-container').easytabs({
-                                //animationSpeed: 2000,
-                                updateHash: false
-                            });
-
-                            $(".etabs a").click(function (e) {
-                                e.preventDefault();                                
-                                if ($(this).attr('href') === '#tab-friends') {
-                                    if (self.friendList.length === 0) self.getFriendList();
-                                    else $('#tab-friends').hide(0).fadeIn(2000);
-                                } 
-                            });
-
-                        });
-
-                        self._msgShow('preparing albums data...', 0);
+                        self.status.logging = true;                      
+                        self._msgShow('preparing albums data...', 0);                      
                         setTimeout(function () {
                             self.getAlbums(self.status.myUserID);
                         }, 1500);
@@ -140,12 +116,12 @@
                         self._loadingClose();
                         self._msgShow('un authorize', 1);
                     }
-                }, { scope: 'user_photos, friends_photos, friends_birthday, friends_relationships' });
+                }, { scope: 'user_photos, friends_photos' });
 
             } else {
                 //reload
                 self._msgShow('refresh albums data...', 0);
-                $('.kenshiin-images-wrapper').remove();
+                $('.kenshiin-images-wrapper').remove();               
                 setTimeout(function () {
                     self.getAlbums(self.status.myUserID);
                 }, 1500);
@@ -257,15 +233,6 @@
             for (var i = 0; i < arrayObj.length; i++) {
                 if (arrayObj[i][key] === value) {
                     return { data: arrayObj[i], index: i };
-                }
-            }
-            return null;
-        },
-
-        getArrayObjectValueByKey: function (arrayObj, key) {
-            for (var i = 0; i < arrayObj.length; i++) {
-                if (arrayObj[i][key]) {
-                    return arrayObj[i][key];
                 }
             }
             return null;
@@ -869,16 +836,18 @@
             if (showOverlay) self._loadingShow();
 
             FB.api({
-                method: 'fql.query',
-                query: (aid === 'fake_aid') ?
-                        'SELECT object_id, aid, pid, caption, src_small, src_small_height, src_small_width, src_big, src_big_height, src_big_width, caption FROM photo WHERE owner!=me() and pid IN (SELECT pid FROM photo_tag WHERE subject = me())'
-                        :
-                        'SELECT aid, pid, caption, src_small, src_small_height, src_small_width, src_big, src_big_height, src_big_width FROM photo WHERE aid = ' + aid
+                method: 'fql.multiquery',
+                queries: {
+                    query1: (aid === 'fake_aid') ?
+                            'SELECT object_id, aid, pid, caption, src_small, src_small_height, src_small_width, src_big, src_big_height, src_big_width, caption FROM photo WHERE owner!=me() and pid IN (SELECT pid FROM photo_tag WHERE subject = me())'
+                            :
+                            'SELECT aid, pid, caption, src_small, src_small_height, src_small_width, src_big, src_big_height, src_big_width FROM photo WHERE aid = ' + aid
+                }
             },
                 function (response) {
                     var parsed = new Array();
 
-                    $(response).each(function (index, value) {
+                    $(response[0].fql_result_set).each(function (index, value) {
                         var result = {
                             aid: value.aid,
                             pid: value.pid,
@@ -911,15 +880,13 @@
 
         _onAlbumsGot: function (data) {
 
-            var start = new Date().getTime();
-
             var self = this,
                 NoCoverImageList = [],
+                albumWrap = $(this.tpl.albumWrap),
 
-                //==download actions container
                 albumsActionWrap = $('<div/>', {
                     'class': 'clearfix kenshiin-albums-actions'
-                }),
+                }).appendTo(albumWrap),
 
                 downloadSelectedAlbum = $('<a/>', {
                     'class': 'kenshiin-albums-actions-bulk-download',
@@ -939,10 +906,10 @@
                     }
                 }).appendTo(albumsActionWrap),
 
-                //==album items
                 albumList = $('<ul/>', {
                     'class': 'kenshiin-albumList'
-                });
+                }).appendTo(albumWrap);
+
 
             for (var i = 0; i < data.length; i++) {
                 var albumData = data[i];
@@ -1057,7 +1024,7 @@
                         }).appendTo(albumAction),
 
                         downloadAlbum = $('<a/>', {
-                            id: 'kenshiin-albumActionDownload-' + albumData.aid,
+                            'id': 'kenshiin-albumActionDownload-' + albumData.aid,
                             'class': 'kenshiin-albumActionDownloadAlbum',
                             text: 'download',
                             click: (albumData.count > 0) ?
@@ -1076,15 +1043,11 @@
                 }
             }
 
-            //$('#tab-albums') === this.tpl.albumWrap
-            $('#tab-albums').append(albumsActionWrap).append(albumList);
+            $('.kenshiin-container').append(albumWrap);
 
             if (NoCoverImageList.length > 0) {
                 this._recoverAlbumsCover(NoCoverImageList);
             }
-
-            var end = new Date().getTime();
-            console.log('end - start', end - start);
 
         },
 
@@ -1117,13 +1080,12 @@
         },
 
         getAlbums: function (uid) {
-            
+
             var self = this,
                 isMySelf = (uid === self.status.myUserID);
 
             this._resetAlbumDatas();
-            $(this.tpl.albumWrap).empty();
-            //$('.kenshiin-container').empty();
+            $('.kenshiin-container').empty();
 
             function fqlExec() {
 
@@ -1179,88 +1141,7 @@
             }
         },
 
-        _onFriendListGot: function (friendDataList) {
-            var self = this,
-                profileKeys = [
-                    { 'sex': 'Gender' },
-                    { 'birthday_date': 'Birthday' },
-                    { 'relationship_status': 'Relationship' },
-                    { 'email': 'Email' }
-                ],
-                friendList = $('<ul/>', { 'class': 'kfl' }); //==friendList items
-
-            for (var i = 0, l = friendDataList.length; i < l; i++) {
-
-                var objFriend = friendDataList[i];
-
-                //<li>
-                var friendItem = $('<li/>', {
-                    id: 'kfl-i-' + i,
-                    'class': 'kfl-i'
-                });
-
-                //table profile
-                var friendProfile = $('<table/>', { class: 'kfl-i-c-profile' });
-
-                for (var i2 = 0, l2 = Object.keys(objFriend).length; i2 < l2; i2++) {
-                    var objKey = Object.keys(objFriend)[i2],
-                        objValue = objFriend[objKey],
-                        objProfileKey = this.getArrayObjectValueByKey(profileKeys, objKey);
-
-                    if (objValue !== null && objProfileKey !== null) {
-                        var row = $('<tr/>').append(
-                            $('<td/>', { class: '_kfl-i-c-profile_key', text: objProfileKey }),
-                            $('<td/>', { class: '_kfl-i-c-profile_value', text: objValue })
-                        ).appendTo(friendProfile);
-                    }
-                }
-
-                //item wrap > cover > profile
-                var friendItemWrap = $('<div/>', { class: 'kfl-i-wrap lfloat' }).append(
-                    $('<div/>', { class: 'kfl-i-cover' }).append(
-                        $('<a/>', { class: 'kfl-i-cover-anchor', href: objFriend.profile_url, target: '_blank' }).append(
-                            $('<img/>', {
-                                id: 'kfl-i-coverImage-' + objFriend.uid,
-                                class: 'kfl-i-coverImage',
-                                style: 'left:-2px; top:0px;',
-                                attr: {
-                                    src: 'https://graph.facebook.com/' + objFriend.username + '/picture?type=normal' || objFriend.pic_square,
-                                    height: 100,
-                                    width: 100,
-                                    alt: objFriend.name
-                                }
-                            })
-                        )
-                    ),
-                    $('<div/>', { class: 'kfl-i-c' }).append(                        
-                        $('<div/>', { class: 'kfl-i-c-profileBlock' }).append(
-                            $('<div/>', { style: 'width:100%;' }).append(
-                                $('<a/>', { class: 'kfl-i-c-profile-name', text: objFriend.name })
-                            ),
-                            friendProfile
-                        )
-                    )
-                );
-
-                //action panel
-                var friendItemAction = $('<div/>', { class: 'clearfix kfl-i-actions rfloat' }).append(
-                        $('<a/>', {
-                            class: '',
-                            'data-friend-uid': objFriend.uid,
-                            text: 'Photo Albums',
-                            click: function (e) {
-                                e.preventDefault();
-                                self.getAlbums($(this).data('friend-uid'));
-                                $('#tab-albums').empty();
-                                $('.kenshiin-container').easytabs('select', '#tab-albums');
-                            }
-                        })
-                    );
-
-                friendItem.append(friendItemWrap).append(friendItemAction).appendTo(friendList);
-            }
-
-            $('#tab-friends').append(friendList);
+        _onFriendListGot: function (data) {
 
         },
 
@@ -1270,32 +1151,31 @@
             this.friendList = [];
 
             FB.api({
-                method: 'fql.query',
-                query: 'SELECT uid, username, name, pic_square, pic_big, sex, birthday_date, relationship_status, email, profile_url FROM user WHERE uid IN (SELECT uid2 FROM friend WHERE uid1 = me()) ORDER BY name ASC'
+                method: 'fql.multiquery',
+                queries: {
+                    query1: 'SELECT uid, name, pic_square, sex, birthday_date, relationship_status, email FROM user WHERE uid IN (SELECT uid2 FROM friend WHERE uid1 = me())'
+                }
             },
                function (response) {
-
+                   console.log('getFriendList ', response[0].fql_result_set);
                    var parsed = new Array();
+                   
+                   $(response[0].fql_result_set).each(function (index, value) {
+                        var result = {
+                            uid: value.uid,
+                            name: value.name,
+                            pic_square: value.pic_square || '',
+                            sex: value.sex || '',
+                            birthday_date: value.birthday_date || '',
+                            relationship_status: value.relationship_status || '',
+                            email: value.email || ''
+                        };
 
-                   $(response).each(function (index, value) {
-                       var objFriend = {
-                           uid: value.uid,
-                           username: value.username,
-                           name: value.name,
-                           pic_square: value.pic_square || null,
-                           pic_big: value.pic_big || null,
-                           sex: value.sex || null,
-                           birthday_date: value.birthday_date || null,
-                           relationship_status: value.relationship_status || null,
-                           email: value.email || null,
-                           profile_url: value.profile_url
-                       };
-
-                       parsed.push(objFriend);
+                       parsed.push(result);
 
                    });
 
-                   self.friendList = parsed;
+                   self.friendList = parsed;                   
                    self._onFriendListGot(parsed);
                    self._loadingClose();
 
@@ -1348,6 +1228,7 @@
             $.error('Method ' + methodOrOptions + ' does not exist.');
         }
     };
+
 
 
 })(jQuery);
