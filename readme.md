@@ -16,8 +16,12 @@ Include the following in your head along with the jQuery Library (if you don't h
 
 ## The Call
 	$('#kenshiin-root').kenshiinWu({
+<<<<<<< HEAD:readme.md
 		appId: '9999999999' //Your FB APP ID
 		//you can create a new app from 'https://developers.facebook.com/apps' 	
+=======
+		appId: '9999999999' //Your FB APP ID, you can create a new app from 'https://developers.facebook.com/apps' 	
+>>>>>>> 0fc1ee24b83db7ef325e6a07856bf6dc37efa3dc:README
 	});
 
 ## The Markup
