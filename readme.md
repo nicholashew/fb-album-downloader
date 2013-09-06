@@ -16,6 +16,7 @@ Include the following in your head along with the jQuery Library (if you don't h
 
 ## The Call
 Attach the kenshiin-root to your markup
+
 	$(document).ready(function() {
 		$('#kenshiin-root').kenshiinWu({
 			appId: '98765432123' //fb app id
