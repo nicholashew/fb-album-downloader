@@ -31,9 +31,11 @@ Download and install Node.js from http://nodejs.org/download/
 After Install, open command prompt <br/>
 cd c://example/your/folder/path/here <br/>
 node server.js <br/>
+<pre>
 Static file server running at <br/>
   => http://localhost:8888/ <br/>
-CTRL + C to shutdown <br/>
+CTRL + C to shutdown 
+</pre>
 
 now you can this run http://localhost:8888/ on your browsers
 
