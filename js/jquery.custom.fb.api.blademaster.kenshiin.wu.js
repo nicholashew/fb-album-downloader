@@ -600,18 +600,16 @@
 
 
                     FB.api({
-                        method: 'fql.multiquery',
-                        queries: {
-                            //query by Last Modified Photo in the Album and Limit to return only one data row
-                            query1: (aid === 'fake_aid') ?
+                        method: 'fql.query',
+						//query by Last Modified Photo in the Album and Limit to return only one data row
+                        query: (aid === 'fake_aid') ?
                                 'SELECT src_big, src_big_height, src_big_width FROM photo WHERE owner!=me() and pid IN (SELECT pid FROM photo_tag WHERE subject = me()) ORDER BY modified desc LIMIT 1'
                                 :
-                                'select src_big, src_big_height, src_big_width from photo where aid=' + aid + ' ORDER BY modified desc LIMIT 1'
-                        }
+                                'select src_big, src_big_height, src_big_width from photo where aid=' + aid + ' ORDER BY modified desc LIMIT 1'                        
                     },
                    function (response) {
-                       if ($(response[0].fql_result_set).length > 0) {
-                           $(response[0].fql_result_set).each(function (index, value) {
+                       if ($(response).length > 0) {
+                           $(response).each(function (index, value) {
                                $('#kenshiin-albumListItem-coverImage-' + aid).attr({
                                    src: value.src_big,
                                    height: (value.src_big_width > value.src_big_height) ? 200 : 266
@@ -873,7 +871,7 @@
                 query: (aid === 'fake_aid') ?
                         'SELECT object_id, aid, pid, caption, src_small, src_small_height, src_small_width, src_big, src_big_height, src_big_width, caption FROM photo WHERE owner!=me() and pid IN (SELECT pid FROM photo_tag WHERE subject = me())'
                         :
-                        'SELECT aid, pid, caption, src_small, src_small_height, src_small_width, src_big, src_big_height, src_big_width FROM photo WHERE aid = ' + aid
+                        'SELECT aid, pid, caption, src_small, src_small_height, src_small_width, src_big, src_big_height, src_big_width FROM photo WHERE aid = "' + aid + '"'
             },
                 function (response) {
                     var parsed = new Array();

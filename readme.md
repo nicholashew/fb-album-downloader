@@ -41,6 +41,8 @@ CTRL + C to shutdown
 
 now you can this run http://localhost:8888/ on your browsers
 
+#### The Promise
+Currently the download album will crash for sometimes while download for large files, this will be the next target to fix.
 
 ### simpleDownload.html + fbPhotoSaver.js  
 Another simple manual downloading photos from facebok <br/>
@@ -48,5 +50,5 @@ Open facebook any album, scroll to load all photos, copy album container HTML ma
 Patse it on textarea and click generate contents follow by bulk download. <br/>
 
 
-This created is just to bulk download photos tagged by freinds.
+This created is just to bulk download photos tagged by freinds. 
 Have Fun XD
