@@ -10,6 +10,18 @@ h2
     text-decoration: underline;
 }
 
+a
+{
+    color: #3b5998;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+    a:hover
+    {
+        text-decoration: underline;
+    }
+
 .container
 {
     width: 630px;
@@ -71,8 +83,8 @@ h2
 .loading-wrapper
 {
     display: none;
-    width: 16px;
-    height: 16px;
+    width: 32px;
+    height: 32px;
     vertical-align: top;
 }
 
@@ -82,21 +94,8 @@ h2
     background: url(../images/loading.gif) no-repeat center center;
     width: 100%;
     height: 100%;
+    background-size: 36px;
 }
-
-/*==================================*/
-
-a
-{
-    color: #3b5998;
-    cursor: pointer;
-    text-decoration: none;
-}
-
-    a:hover
-    {
-        text-decoration: underline;
-    }
 
 .clearfix:after
 {
@@ -114,6 +113,86 @@ a
     zoom: 1;
 }
 
+.lfloat
+{
+    float: left;
+}
+
+.rfloat
+{
+    float: right;
+}
+
+/* Specific to tabs */
+.etabs
+{
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+    .etabs li
+    {
+        list-style: none;
+    }
+
+.tab
+{ /*display: inline-block; zoom:1; *display:inline;*/
+    float: left;
+    background: #fff;
+    margin-left: 1px;
+}
+
+    .tab.first-child
+    {
+        margin-left: 0;
+    }
+
+    .tab a
+    {
+        font-size: 15px;
+        line-height: 30px;
+        display: block;
+        padding: 0 0px;
+        outline: none;
+        font-weight: bold;
+        color: #3b5998;
+        width: 100px;
+        height: 30px;
+        text-align: center;
+        border-left: 1px solid #e9eaed;
+        border-right: 1px solid #e9eaed;
+        border-top: 1px solid rgba(247, 248, 250, 0.71);
+        border-bottom: 1px solid rgba(247, 248, 250, 0.71);
+    }
+
+        .tab a:hover
+        {
+            text-decoration: underline;
+        }
+
+    .tab.active
+    {
+        background: #f7d117;
+        padding-top: 0px;
+        position: relative;
+        color: #000;
+    }
+
+    .tab a.active
+    {
+        font-weight: bold;
+        color: #000;
+    }
+
+.tab-container .panel-container
+{
+    width: 749px;
+    background: #dedede;
+    border: 1px solid #dedede;
+}
+
+/*=====================*/
 .kenshiin-albums-actions
 {
     margin-top: 5px;
@@ -391,7 +470,6 @@ a
         left: 70%;
     }
 
-
     .kenshiin-albumStage-photoList .kenshiin-albumStage-photoListCoverWrap .kenshiin-albumStage-photo
     {
     }
@@ -416,6 +494,103 @@ a
         margin: 0 10px;
     }
 
+/*===== friend list =====*/
+
+ul.kfl
+{
+    width: 930px;
+    float: left;
+    border: 1px solid #eef;
+    box-shadow: 0px 0px 4px 2px #888888;
+    margin: 3px 0px 0px -25%;
+    display: block;
+    list-style: none;
+    padding: 5px;
+}
+
+li.kfl-i
+{   
+    display: inline-block; 
+    width: 287px;
+    height:auto;
+    max-height: 125px;
+    margin: 5px;
+    padding:5px;    
+    overflow: hidden;    
+    border:1px solid #e5e5e5;    
+}
+
+    .kfl-i .kfl-i-wrap
+    {
+        width:100%;
+    }
+
+        .kfl-i .kfl-i-wrap .kfl-i-cover
+        {
+            display:inline-block;
+        }
+
+            .kfl-i .kfl-i-wrap .kfl-i-cover .kfl-i-cover-anchor
+            {
+            }
+
+                .kfl-i .kfl-i-wrap .kfl-i-cover .kfl-i-cover-anchor .kfl-i-coverImage
+                {
+                }
+
+
+        .kfl-i .kfl-i-wrap .kfl-i-c
+        {
+            width: 183px;
+            display: inline-block;
+            vertical-align: top;
+            margin: 2px;
+        }
+        
+            .kfl-i .kfl-i-wrap .kfl-i-c .kfl-i-c-profileBlock
+            {
+                font-size: 13px;
+                line-height: 13px;
+            }
+
+                .kfl-i .kfl-i-wrap .kfl-i-c .kfl-i-c-profileBlock .kfl-i-c-profile-name
+                {
+                    display: block;
+                    width: 180px;
+                    font-size: 15px;
+                    font-weight: bold;                    
+                    line-height: 20px;
+                    text-indent: 2px;                    
+                }
+
+                .kfl-i .kfl-i-wrap .kfl-i-c .kfl-i-c-profileBlock .kfl-i-c-profile tr td._kfl-i-c-profile_key
+                {
+                    width:30%;                    
+                    font-family: 'lucida grande',tahoma,verdana,arial,sans-serif;
+                    font-size: 11px;
+                    color:#89919c;
+                    line-height: 15px;
+                    text-align: left;
+                    vertical-align: top;
+                    word-wrap: break-word;
+                    
+                }
+
+                .kfl-i .kfl-i-wrap .kfl-i-c .kfl-i-c-profileBlock .kfl-i-c-profile  tr td._kfl-i-c-profile_value
+                {
+                    width:70%;
+                    font-family: 'lucida grande',tahoma,verdana,arial,sans-serif;
+                    font-size: 11px;
+                    text-indent: 5px;
+                    line-height: 15px;
+                    text-align: left;
+                    vertical-align: top;
+                    word-wrap: break-word;                    
+                }
+
+    .kfl-i .kfl-i-actions
+    {
+    }
 
 /*===== custom jquery-ui- dialog =====*/
 .ui-dialog-titlebar
@@ -457,4 +632,45 @@ a
     #kenshiin-popUp .kenshiin-popUp-download-mirror a:hover
     {
         text-decoration: underline;
+    }
+
+/*===== custom jquery-ui- progress Bar =====*/
+#kenshiin-progressBar-panel
+{
+    display: none;
+    z-index: 99999;
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 20px;
+    width: 250px;
+    border: 1px solid rgb(232, 255, 232);
+    margin: 5px;
+    padding: 10px;
+}
+
+    #kenshiin-progressBar-panel.progress-active
+    {
+        display: block;
+    }
+
+#kenshiin-progressBar
+{
+    width: 250px;
+    height: 15px;
+    border: 1px solid #111;
+    background-color: #FDFEFF;
+    margin: 0 auto;
+}
+
+    #kenshiin-progressBar div
+    {
+        height: 100%;
+        color: #FFFFFF;
+        text-align: right;
+        line-height: 15px;
+        width: 0;
+        background-color: #0099ff;
+        text-shadow: 1px 1px #111;
+        font-size: 13px;
     }
