@@ -15,37 +15,32 @@ Include the following in your head along with the jQuery Library (if you don't h
 `<script src="js/jquery.custom.fb.api.blademaster.kenshiin.wu.js" type="text/javascript"></script>`
 
 ## The Call
-	$('#kenshiin-root').kenshiinWu({
-<<<<<<< HEAD:readme.md
-		appId: '9999999999' //Your FB APP ID
-		//you can create a new app from 'https://developers.facebook.com/apps' 	
-=======
-		appId: '9999999999' //Your FB APP ID, you can create a new app from 'https://developers.facebook.com/apps' 	
->>>>>>> 0fc1ee24b83db7ef325e6a07856bf6dc37efa3dc:README
+Attach the kenshiin-root to your markup
+	$(document).ready(function() {
+		$('#kenshiin-root').kenshiinWu({
+			appId: '98765432123' //fb app id
+		});
 	});
 
 ## The Markup
 	<div id="kenshiin-root"></div>
 
 ### To Run it on local browser
-Download and install Node.js from 'http://nodejs.org/download/'
-After Install, open command prompt
---> cd c://example/your/folder/path/here
---> node server.js
-= = = = = = = = = = = = = = = = = = 
-Static file server running at
-  => http://localhost:8888/
-CTRL + C to shutdown
-= = = = = = = = = = = = = = = = = = 
+Download and install Node.js from http://nodejs.org/download/
+After Install, open command prompt <br/>
+cd c://example/your/folder/path/here <br/>
+node server.js <br/>
+Static file server running at <br/>
+  => http://localhost:8888/ <br/>
+CTRL + C to shutdown <br/>
+
 now you can this run http://localhost:8888/ on your browsers
 
 
-- - - - - - - - - - - - - - - - - - - - - - -
--  # simpleDownload.html + fbPhotoSaver.js  -
-- - - - - - - - - - - - - - - - - - - - - - -
-Another simple manual downloading photos from facebok
-Open facebook any album, scroll to load all photos, copy album container HTML markup.
-Patse it on textarea and click generate contents follow by bulk download.
+# simpleDownload.html + fbPhotoSaver.js  
+Another simple manual downloading photos from facebok <br/>
+Open facebook any album, scroll to load all photos, copy album container HTML markup. <br/>
+Patse it on textarea and click generate contents follow by bulk download. <br/>
 
 
 This created is just to bulk download photos tagged by freinds.
