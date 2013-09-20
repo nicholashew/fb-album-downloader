@@ -1,8 +1,8 @@
-# fb_album_downloader
-A simple download fb photo plugin.
+# Introduction
+Unofficial Facebook Photo Downloader is a simple but useful node.js app that provides a way to download photos from their Facebook account, all at one go.
 
-## Includes 
-Include the following in your head along with the jQuery Library (if you don't have it already).
+## Dependencies 
+The node.js module depends on the following libraries. Please include the following in your HTML header along with the jQuery library (if you don't have it already).
 
 `<link href="js/jquery-ui-1.10.3/themes/base/jquery.ui.all.css" rel="stylesheet" />`
 `<link href="js/jquery.fancyBox/jquery.fancybox.css" rel="stylesheet" />`
@@ -26,9 +26,10 @@ Attach the kenshiin-root to your markup
 ## The Markup
 	<div id="kenshiin-root"></div>
 
-### To Run it on local browser
-Download and install Node.js from http://nodejs.org/download/ <br/>
-After Install, open command prompt 
+### Installation
+* To run in your local browser, follow the steps below:
+Download and install node.js from http://nodejs.org/download/ <br/>
+After completing node.js installation, open your console or terminal and enter the following commands: 
 <ul>
 <li>cd c://example/your/folder/path/here </li>
 <li>node server.js </li>
@@ -39,9 +40,9 @@ Static file server running at
 CTRL + C to shutdown 
 </pre>
 
-now you can this run http://localhost:8888/ on your browsers
+Now you can open this URL in your browser: http://localhost:8888/
 
-#### The Promise
+#### Known Issues
 Currently the download album will crash for sometimes while download for large files, this will be the next target to fix.
 
 ### simpleDownload.html + fbPhotoSaver.js  
@@ -49,6 +50,9 @@ Another simple manual downloading photos from facebok <br/>
 Open facebook any album, scroll to load all photos, copy album container HTML markup. <br/>
 Patse it on textarea and click generate contents follow by bulk download. <br/>
 
+It supports batch download Facebook photos tagged by your friends. How cool is that!
 
-This created is just to bulk download photos tagged by freinds. 
-Have Fun XD
+### Related Resources
+TBD
+
+Have fun! XD
